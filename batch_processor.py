@@ -16,10 +16,10 @@ Usage:
     python batch_processor.py results --batch-id batch_abc123 --output ./results/
 
 Requirements:
-    pip install anthropic --break-system-packages
+    pip install anthropic python-dotenv
     
-    Set your API key:
-    export ANTHROPIC_API_KEY="your-key-here"
+    Set your API key in a .env file:
+    ANTHROPIC_API_KEY=your-key-here
 """
 
 import anthropic
@@ -30,6 +30,10 @@ import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 # ============================================================================
@@ -38,7 +42,9 @@ from typing import Optional
 
 DEFAULT_MODEL = "claude-sonnet-4-5-20250929"  # Cost-effective for batch
 MAX_TOKENS = 16000  # Sufficient for full quiz output
-SKILL_DIR = Path("/mnt/skills/user/automatic-question-generation")
+# Try local skills directory first, then fall back to the original path
+SKILL_DIR = Path(__file__).parent / "skills" / "automatic-question-generation"
+FALLBACK_SKILL_DIR = Path("/mnt/skills/user/automatic-question-generation")
 
 # Files to include in system prompt (order matters)
 SKILL_FILES = [
@@ -61,10 +67,23 @@ SKILL_FILES = [
 # SYSTEM PROMPT BUILDER
 # ============================================================================
 
-def build_system_prompt(skill_dir: Path = SKILL_DIR) -> str:
+def build_system_prompt(skill_dir: Path = None) -> str:
     """
     Build the full system prompt by concatenating skill files.
     """
+    if skill_dir is None:
+        # Try local directory first, then fallback
+        if SKILL_DIR.exists():
+            skill_dir = SKILL_DIR
+        elif FALLBACK_SKILL_DIR.exists():
+            skill_dir = FALLBACK_SKILL_DIR
+        else:
+            print(f"Error: SKILL directory not found!", file=sys.stderr)
+            print(f"  Tried: {SKILL_DIR}", file=sys.stderr)
+            print(f"  Tried: {FALLBACK_SKILL_DIR}", file=sys.stderr)
+            print(f"  Please download the SKILL files and place them in: {SKILL_DIR}", file=sys.stderr)
+            sys.exit(1)
+    
     sections = []
     
     sections.append("""You are an expert assessment designer running the Automatic Question Generation workflow.
@@ -75,13 +94,18 @@ Output the final formatted quiz in Empirica template format.
 <skill_instructions>
 """)
     
+    missing_files = []
     for filename in SKILL_FILES:
         filepath = skill_dir / filename
         if filepath.exists():
             content = filepath.read_text()
             sections.append(f"\n\n<!-- {filename} -->\n{content}")
         else:
+            missing_files.append(filename)
             print(f"Warning: Skill file not found: {filepath}", file=sys.stderr)
+    
+    if missing_files:
+        print(f"\nWarning: {len(missing_files)} skill file(s) missing. The system prompt may be incomplete.", file=sys.stderr)
     
     sections.append("\n</skill_instructions>")
     
@@ -198,7 +222,14 @@ def submit_batch(input_file: str, model: str = DEFAULT_MODEL, dry_run: bool = Fa
         return None
     
     # Submit to Anthropic
-    client = anthropic.Anthropic()
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Error: ANTHROPIC_API_KEY not found in environment variables.", file=sys.stderr)
+        print("  Please set it in your .env file or export it:", file=sys.stderr)
+        print("  export ANTHROPIC_API_KEY='your-key-here'", file=sys.stderr)
+        sys.exit(1)
+    
+    client = anthropic.Anthropic(api_key=api_key)
     
     print("\nSubmitting batch to Anthropic API...")
     batch = client.batches.create(requests=requests)
@@ -230,7 +261,12 @@ def check_status(batch_id: str) -> dict:
     """
     Check the status of a batch.
     """
-    client = anthropic.Anthropic()
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Error: ANTHROPIC_API_KEY not found in environment variables.", file=sys.stderr)
+        sys.exit(1)
+    
+    client = anthropic.Anthropic(api_key=api_key)
     batch = client.batches.retrieve(batch_id)
     
     status = {
@@ -262,7 +298,12 @@ def retrieve_results(batch_id: str, output_dir: str) -> None:
     """
     Retrieve results from a completed batch.
     """
-    client = anthropic.Anthropic()
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Error: ANTHROPIC_API_KEY not found in environment variables.", file=sys.stderr)
+        sys.exit(1)
+    
+    client = anthropic.Anthropic(api_key=api_key)
     
     # Check status first
     batch = client.batches.retrieve(batch_id)
@@ -319,7 +360,12 @@ def list_batches(limit: int = 10) -> None:
     """
     List recent batches.
     """
-    client = anthropic.Anthropic()
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Error: ANTHROPIC_API_KEY not found in environment variables.", file=sys.stderr)
+        sys.exit(1)
+    
+    client = anthropic.Anthropic(api_key=api_key)
     
     print(f"\nRecent batches (up to {limit}):")
     print("-" * 80)

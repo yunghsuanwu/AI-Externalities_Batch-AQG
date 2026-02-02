@@ -2,20 +2,17 @@
 """
 Input Template Generator for Automatic Question Generation
 
-This tool helps create properly formatted input files for batch processing.
+This tool converts CSV files to JSON format for batch processing.
 
 Usage:
-    # Create a blank template
-    python input_generator.py template --output tasks.json --count 5
-    
-    # Convert from CSV
+    # Convert from CSV to JSON
     python input_generator.py from-csv --input tasks.csv --output tasks.json
     
     # Validate an existing input file
     python input_generator.py validate --input tasks.json
     
-    # Interactive mode - guided entry
-    python input_generator.py interactive --output tasks.json
+    # Create a CSV template
+    python input_generator.py csv-template --output tasks.csv
 """
 
 import json
@@ -161,61 +158,20 @@ def create_blank_template(count: int = 1) -> dict:
     }
 
 
-def create_example_batch() -> dict:
-    """
-    Create a batch with realistic example tasks.
-    """
-    return {
-        "tasks": [
-            {
-                "domain": "Health",
-                "use_case": "Medication adherence",
-                "use_case_description": "Understanding prescription medication instructions and interactions",
-                "knowledge_dimensions": "factual/procedural",
-                "task_id": "thyroid-medication",
-                "task_title": "Thyroid Medication Management",
-                "reference_material": "https://www.accessdata.fda.gov/drugsatfda_docs/label/levothyroxine.pdf",
-                "reference_material_source": "FDA prescribing information",
-                "task_description": "Learn proper administration of thyroid medication including timing, food interactions, and supplement considerations.",
-                "cq_format": "single-select MCQs with 5 options and one correct answer",
-            },
-            {
-                "domain": "Finance",
-                "use_case": "Tax preparation",
-                "use_case_description": "Understanding federal income tax forms and requirements",
-                "knowledge_dimensions": "factual/procedural/conceptual",
-                "task_id": "w4-withholding",
-                "task_title": "W-4 Tax Withholding",
-                "reference_material": "https://www.irs.gov/pub/irs-pdf/fw4.pdf",
-                "reference_material_source": "IRS Form W-4 Instructions",
-                "task_description": "Learn how to properly complete Form W-4 for tax withholding, including claiming dependents and additional withholding.",
-                "cq_format": "single-select MCQs with 5 options and one correct answer",
-            },
-            {
-                "domain": "STEM Education",
-                "use_case": "Computer science principles",
-                "use_case_description": "Fundamental programming concepts for beginners",
-                "knowledge_dimensions": "conceptual/procedural",
-                "task_id": "python-loops",
-                "task_title": "Python Loop Structures",
-                # No reference_material = Path A (source discovery)
-                "task_description": "Learn the differences between for loops and while loops in Python, including when to use each type.",
-                "cq_format": "single-select MCQs with 4 options and one correct answer",
-            },
-        ]
-    }
-
-
 # ============================================================================
 # CSV CONVERSION
 # ============================================================================
 
-def convert_from_csv(csv_path: str) -> dict:
+def convert_from_csv(csv_path: str, reference_materials_dir: Path = None) -> dict:
     """
     Convert a CSV file to the JSON task format.
     
     CSV columns should match field names (snake_case).
+    If reference_material is a local filename, it will be resolved relative to reference_materials_dir.
     """
+    if reference_materials_dir is None:
+        reference_materials_dir = Path(__file__).parent / "reference_materials"
+    
     tasks = []
     
     with open(csv_path, 'r', encoding='utf-8') as f:
@@ -235,6 +191,18 @@ def convert_from_csv(csv_path: str) -> dict:
                     elif field == "knowledge_dimensions":
                         # Normalize separators
                         task[field] = value.replace(",", "/").replace(" ", "")
+                    elif field == "reference_material" and value:
+                        # Check if it's a local file path (not a URL)
+                        if not value.startswith(("http://", "https://")):
+                            # Resolve relative to reference_materials_dir
+                            ref_path = reference_materials_dir / value
+                            if ref_path.exists():
+                                task[field] = str(ref_path.absolute())
+                            else:
+                                print(f"Warning: Row {row_num} reference_material file not found: {value}", file=sys.stderr)
+                                task[field] = value  # Keep original value anyway
+                        else:
+                            task[field] = value
                     else:
                         task[field] = value
             
@@ -469,9 +437,6 @@ Examples:
     # Create a blank template with 5 task slots
     python input_generator.py template --output tasks.json --count 5
     
-    # Create a template with realistic examples
-    python input_generator.py example --output example_tasks.json
-    
     # Create a CSV template
     python input_generator.py csv-template --output tasks.csv
     
@@ -493,10 +458,6 @@ Examples:
     template_parser.add_argument("--output", "-o", required=True, help="Output JSON file")
     template_parser.add_argument("--count", "-n", type=int, default=1, help="Number of task slots (default: 1)")
     
-    # Example command
-    example_parser = subparsers.add_parser("example", help="Create template with realistic examples")
-    example_parser.add_argument("--output", "-o", required=True, help="Output JSON file")
-    
     # CSV template command
     csv_template_parser = subparsers.add_parser("csv-template", help="Create a CSV template")
     csv_template_parser.add_argument("--output", "-o", required=True, help="Output CSV file")
@@ -505,6 +466,7 @@ Examples:
     from_csv_parser = subparsers.add_parser("from-csv", help="Convert CSV to JSON")
     from_csv_parser.add_argument("--input", "-i", required=True, help="Input CSV file")
     from_csv_parser.add_argument("--output", "-o", required=True, help="Output JSON file")
+    from_csv_parser.add_argument("--reference-materials-dir", help="Directory containing reference materials (default: ./reference_materials)")
     
     # Validate command
     validate_parser = subparsers.add_parser("validate", help="Validate an input file")
@@ -526,18 +488,12 @@ Examples:
         print(f"Blank template created: {args.output}")
         print(f"Contains {args.count} task slot(s)")
         
-    elif args.command == "example":
-        data = create_example_batch()
-        with open(args.output, "w") as f:
-            json.dump(data, f, indent=2)
-        print(f"Example batch created: {args.output}")
-        print(f"Contains {len(data['tasks'])} example tasks")
-        
     elif args.command == "csv-template":
         generate_csv_template(args.output)
         
     elif args.command == "from-csv":
-        data = convert_from_csv(args.input)
+        ref_dir = Path(args.reference_materials_dir) if args.reference_materials_dir else None
+        data = convert_from_csv(args.input, ref_dir)
         with open(args.output, "w") as f:
             json.dump(data, f, indent=2)
         print(f"JSON file created: {args.output}")

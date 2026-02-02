@@ -12,30 +12,67 @@ This toolkit enables you to:
 ## Quick Start
 
 ```bash
-# 1. Set your API key
-export ANTHROPIC_API_KEY="your-key-here"
+# 1. Install dependencies
+pip install anthropic python-dotenv
 
-# 2. Create example tasks file
-python input_generator.py example --output my_tasks.json
+# 2. Set up your API key
+# Create .env file and add your ANTHROPIC_API_KEY:
+# ANTHROPIC_API_KEY=your-api-key-here
 
-# 3. Validate the input
-python input_generator.py validate --input my_tasks.json
+# 3. Set up SKILL files (see SKILL Setup below)
+# Download the SKILL files and place them in: ./skills/automatic-question-generation/
 
-# 4. Submit the batch (runs overnight)
-python batch_processor.py submit --input my_tasks.json
+# 4. Fill in tasks.csv with your tasks
+# Reference materials go in ./reference_materials/ folder
 
-# 5. Check status next morning
+# 5. Convert CSV to JSON
+python input_generator.py from-csv --input tasks.csv --output tasks.json
+
+# 6. Validate the input
+python input_generator.py validate --input tasks.json
+
+# 7. Submit the batch (runs overnight)
+python batch_processor.py submit --input tasks.json
+
+# 8. Check status next morning
 python batch_processor.py status --batch-id batch_xxx
 
-# 6. Download results when complete
+# 9. Download results when complete
 python batch_processor.py results --batch-id batch_xxx --output ./quiz_outputs/
 ```
 
 ## Installation
 
 ```bash
-pip install anthropic --break-system-packages
+pip install anthropic python-dotenv
 ```
+
+## SKILL Setup
+
+The batch processor requires SKILL files to generate questions. The code looks for them in:
+- `./skills/automatic-question-generation/` (local directory - preferred)
+- `/mnt/skills/user/automatic-question-generation` (fallback)
+
+**You need to download the SKILL files and place them in the local directory.** The required structure is:
+
+```
+skills/
+└── automatic-question-generation/
+    ├── SKILL.md
+    └── references/
+        ├── orchestrator.md
+        ├── question-writer.md
+        ├── psychometric-reviewer.md
+        ├── curriculum-designer.md
+        ├── consistency-agent.md
+        ├── output-template.md
+        ├── schemas.md
+        ├── source-discovery.md
+        ├── domain-experts.md
+        └── sample-question-extractor.md
+```
+
+If the SKILL directory is not found, the batch processor will exit with an error message showing where to place the files.
 
 ## Workflow
 
@@ -51,36 +88,28 @@ pip install anthropic --break-system-packages
 
 ## Input Preparation
 
-### Option A: Start from Template
+### Option A: Start from CSV (Recommended)
+
+This is the main workflow - fill in `tasks.csv` and convert to JSON:
 
 ```bash
-# Create blank template with 10 task slots
-python input_generator.py template --output tasks.json --count 10
-
-# Edit tasks.json in your favorite editor
-```
-
-### Option B: Start from CSV (Best for Spreadsheet Users)
-
-```bash
-# Generate CSV template
+# Generate CSV template (if needed)
 python input_generator.py csv-template --output tasks.csv
 
-# Edit in Excel/Google Sheets, then convert
+# Edit tasks.csv in Excel/Google Sheets
+# - Put reference material filenames in the reference_material column
+# - Reference materials should be in ./reference_materials/ folder
+
+# Convert CSV to JSON
 python input_generator.py from-csv --input tasks.csv --output tasks.json
 ```
 
-### Option C: Interactive Guided Entry
+### Reference Materials
 
-```bash
-python input_generator.py interactive --output tasks.json
-```
+Place your reference material files (PDFs, text files, etc.) in the `reference_materials/` folder. In your `tasks.csv`, specify the filename (or relative path) in the `reference_material` column. For example:
 
-### Option D: Example File
-
-```bash
-python input_generator.py example --output example_tasks.json
-```
+- If you have `reference_materials/thyroid-guide.pdf`, use `thyroid-guide.pdf` in the CSV
+- URLs (starting with `http://` or `https://`) are also supported
 
 ## Input Format
 
@@ -198,14 +227,21 @@ Common issues:
 ## File Structure
 
 ```
-batch_question_generator/
-├── batch_processor.py    # Main batch submission/retrieval
-├── input_generator.py    # Input file creation tools
-├── README.md            # This file
-├── examples/
-│   ├── tasks.json       # Example task file
-│   └── tasks.csv        # Example CSV format
-└── batch_*_info.json    # Auto-generated batch tracking files
+AI-Externalities_Batch-AQG/
+├── batch_processor.py          # Main batch submission/retrieval
+├── input_generator.py          # CSV to JSON converter
+├── tasks.csv                   # Your input tasks (fill this in)
+├── tasks.json                  # Generated from tasks.csv
+├── README.md                   # This file
+├── .env                        # Your API key (ANTHROPIC_API_KEY=your-key-here)
+├── .gitignore                  # Git ignore rules
+├── reference_materials/        # Put your reference PDFs/files here
+│   └── (your files here)
+└── skills/                     # SKILL files (you need to download these)
+    └── automatic-question-generation/
+        ├── SKILL.md
+        └── references/
+            └── (skill reference files)
 ```
 
 ## Tips for Large Batches
