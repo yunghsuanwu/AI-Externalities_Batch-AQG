@@ -100,16 +100,17 @@ python input_generator.py from-csv --input tasks.csv --output tasks.json
 # Validate input
 python input_generator.py validate --input tasks.json
 
-# Submit batch (dry run first to test)
-python batch_processor.py submit --input tasks.json --dry-run
+# OPTION 1: Test with regular API (quick testing, immediate results)
+python batch_processor.py test --input tasks.json --output ./test_results
 
-# Submit batch for real
-python batch_processor.py submit --input tasks.json
+# OPTION 2: Submit batch API (cost-effective for large batches)
+python batch_processor.py submit --input tasks.json --dry-run  # Test first
+python batch_processor.py submit --input tasks.json            # Real submission
 
 # Check batch status
 python batch_processor.py status --batch-id YOUR_BATCH_ID
 
-# Retrieve results when complete
+# Retrieve batch results when complete
 python batch_processor.py results --batch-id YOUR_BATCH_ID --output ./results/
 
 # List recent batches
@@ -215,9 +216,45 @@ Each task requires these fields:
 }
 ```
 
-## Batch Submission
+## Testing vs Batch Processing
 
-### Submit Tasks
+### Option 1: Test with Regular API (Quick Testing)
+
+Use this to test a few tasks quickly before submitting a full batch:
+
+```bash
+# Test with regular API (processes immediately, saves results as they complete)
+python batch_processor.py test --input tasks.json --output ./test_results
+
+# Test with custom concurrency settings
+python batch_processor.py test --input tasks.json --workers 3 --delay 2.0
+
+# Test with different model
+python batch_processor.py test --input tasks.json --model claude-sonnet-4-5-20250929
+```
+
+**Output Structure:**
+```
+test_results/
+├── synthroid_output.md          # Full workflow output
+├── final/
+│   └── synthroid.md            # Final quiz (clean, ready to use)
+└── synthroid_error.json         # Errors (if any)
+```
+
+**Benefits:**
+- ✅ Immediate results (minutes instead of hours)
+- ✅ See results as they complete
+- ✅ Good for testing 1-10 tasks
+
+**Trade-offs:**
+- ❌ Full price (no 50% discount)
+- ❌ Need to manage rate limits
+- ❌ Slower for large batches (75+ tasks)
+
+### Option 2: Batch API (Production)
+
+Use this for processing many tasks cost-effectively:
 
 ```bash
 # Normal submission
@@ -229,6 +266,15 @@ python batch_processor.py submit --input tasks.json --dry-run
 # Use different model
 python batch_processor.py submit --input tasks.json --model claude-sonnet-4-5-20250929
 ```
+
+**Benefits:**
+- ✅ 50% cost savings
+- ✅ No rate limit concerns
+- ✅ Best for 10+ tasks
+
+**Trade-offs:**
+- ❌ Takes up to 24 hours
+- ❌ Results retrieved later
 
 ### Monitor Progress
 
@@ -247,9 +293,14 @@ python batch_processor.py list
 python batch_processor.py results --batch-id batch_abc123 --output ./results/
 ```
 
-Results are saved as:
-- `{task_id}_output.md` — Completed quiz in Empirica format
-- `{task_id}_error.json` — Error details if task failed
+Results are saved in two locations:
+
+**Full Output:**
+- `{task_id}_output.md` — Complete workflow output with all processing steps
+
+**Final Output (in `final/` subfolder):**
+- `final/{task_id}.md` — Extracted final quiz in Empirica template format (clean, ready to use)
+- `{task_id}_error.json` — Error details if task failed (in main output directory)
 
 ## Path Selection Logic
 

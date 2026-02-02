@@ -27,9 +27,12 @@ import json
 import argparse
 import os
 import sys
+import time
+import re
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -110,6 +113,51 @@ Output the final formatted quiz in Empirica template format.
     sections.append("\n</skill_instructions>")
     
     return "".join(sections)
+
+
+# ============================================================================
+# OUTPUT EXTRACTION
+# ============================================================================
+
+def extract_final_output(full_content: str, task_id: str) -> Optional[str]:
+    """
+    Extract the final output section from the full workflow output.
+    
+    Looks for "# Final Output: {task_id}.md" followed by a markdown code block,
+    and extracts the content within that code block (until closing ``` or end of file).
+    
+    Returns the extracted final output, or None if not found.
+    """
+    # Pattern to find the final output section
+    # Handle both cases: with closing ``` or without (content until end of file)
+    pattern = rf"# Final Output:\s*{re.escape(task_id)}\.md\s*\n```markdown\n(.*?)(?:```|$)"
+    
+    match = re.search(pattern, full_content, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    
+    # Fallback: look for the Empirica template header pattern directly
+    # This handles cases where the format might be slightly different
+    empirica_pattern = r"# [^:]+: [^\n]+\n\n\| \*\*Metadata\*\*.*"
+    match = re.search(empirica_pattern, full_content, re.DOTALL)
+    if match:
+        # Extract from the header to the end of file (or until next major section)
+        start_pos = match.start()
+        remaining = full_content[start_pos:]
+        # Try to find end markers like "## Workflow Summary" or "---" that indicate end
+        end_markers = [
+            r"\n## Workflow Summary",
+            r"\n---\n\n## Workflow Summary",
+            r"\n\*\*Estimated completion time:",
+        ]
+        for marker in end_markers:
+            end_match = re.search(marker, remaining, re.DOTALL)
+            if end_match:
+                return remaining[:end_match.start()].strip()
+        # If no end marker, take everything from start to end
+        return remaining.strip()
+    
+    return None
 
 
 # ============================================================================
@@ -232,7 +280,7 @@ def submit_batch(input_file: str, model: str = DEFAULT_MODEL, dry_run: bool = Fa
     client = anthropic.Anthropic(api_key=api_key)
     
     print("\nSubmitting batch to Anthropic API...")
-    batch = client.batches.create(requests=requests)
+    batch = client.beta.messages.batches.create(requests=requests)
     
     print(f"\n✓ Batch submitted successfully!")
     print(f"  Batch ID: {batch.id}")
@@ -267,7 +315,7 @@ def check_status(batch_id: str) -> dict:
         sys.exit(1)
     
     client = anthropic.Anthropic(api_key=api_key)
-    batch = client.batches.retrieve(batch_id)
+    batch = client.beta.messages.batches.retrieve(batch_id)
     
     status = {
         "batch_id": batch.id,
@@ -306,7 +354,7 @@ def retrieve_results(batch_id: str, output_dir: str) -> None:
     client = anthropic.Anthropic(api_key=api_key)
     
     # Check status first
-    batch = client.batches.retrieve(batch_id)
+    batch = client.beta.messages.batches.retrieve(batch_id)
     if batch.processing_status != "ended":
         print(f"Batch is not complete. Status: {batch.processing_status}")
         return
@@ -321,7 +369,7 @@ def retrieve_results(batch_id: str, output_dir: str) -> None:
     succeeded = 0
     failed = 0
     
-    for result in client.batches.results(batch_id):
+    for result in client.beta.messages.batches.results(batch_id):
         task_id = result.custom_id
         
         if result.result.type == "succeeded":
@@ -332,13 +380,24 @@ def retrieve_results(batch_id: str, output_dir: str) -> None:
                 if hasattr(block, 'text'):
                     content += block.text
             
-            # Save as markdown file
+            # Save full output as markdown file
             output_file = output_path / f"{task_id}_output.md"
-            with open(output_file, "w") as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 f.write(content)
             
-            succeeded += 1
-            print(f"  ✓ {task_id} → {output_file}")
+            # Extract and save final output to subfolder
+            final_output = extract_final_output(content, task_id)
+            if final_output:
+                final_dir = output_path / "final"
+                final_dir.mkdir(parents=True, exist_ok=True)
+                final_file = final_dir / f"{task_id}.md"
+                with open(final_file, "w", encoding="utf-8") as f:
+                    f.write(final_output)
+                succeeded += 1
+                print(f"  ✓ {task_id} → {output_file} and {final_file}")
+            else:
+                succeeded += 1
+                print(f"  ✓ {task_id} → {output_file} (final output extraction failed)")
         else:
             # Save error info
             error_file = output_path / f"{task_id}_error.json"
@@ -356,6 +415,145 @@ def retrieve_results(batch_id: str, output_dir: str) -> None:
     print(f"Results saved to: {output_path}")
 
 
+def process_regular_api(input_file: str, output_dir: str = "./test_results", model: str = DEFAULT_MODEL, max_workers: int = 5, delay: float = 1.2) -> None:
+    """
+    Process tasks using regular API calls (for testing).
+    
+    This processes tasks immediately and saves results as they complete.
+    Use this for quick testing before submitting a full batch.
+    
+    Args:
+        input_file: JSON file with tasks
+        output_dir: Directory to save results
+        model: Model to use
+        max_workers: Number of concurrent requests (default: 5 to avoid rate limits)
+        delay: Delay between requests in seconds (default: 1.2 to respect rate limits)
+    """
+    # Load tasks
+    with open(input_file, "r") as f:
+        data = json.load(f)
+    
+    if isinstance(data, dict) and "tasks" in data:
+        tasks = data["tasks"]
+    elif isinstance(data, list):
+        tasks = data
+    else:
+        raise ValueError("Input must be a JSON array or object with 'tasks' array")
+    
+    print(f"Found {len(tasks)} tasks to process using regular API")
+    print(f"Using {max_workers} concurrent workers with {delay}s delay between requests")
+    print(f"Results will be saved to: {output_dir}\n")
+    
+    # Build system prompt
+    system_prompt = build_system_prompt()
+    print(f"System prompt size: {len(system_prompt):,} characters\n")
+    
+    # Get API key
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Error: ANTHROPIC_API_KEY not found in environment variables.", file=sys.stderr)
+        print("  Please set it in your .env file or export it:", file=sys.stderr)
+        sys.exit(1)
+    
+    client = anthropic.Anthropic(api_key=api_key)
+    
+    # Create output directory
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    
+    def process_task(task: dict, index: int) -> tuple[str, bool, str]:
+        """Process a single task and return (task_id, success, message)"""
+        task_id = task.get("task_id", f"task_{index}")
+        
+        try:
+            user_message = format_task_input(task)
+        except ValueError as e:
+            return (task_id, False, f"Validation error: {e}")
+        
+        try:
+            # Make API call
+            message = client.messages.create(
+                model=model,
+                max_tokens=MAX_TOKENS,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_message}]
+            )
+            
+            # Extract content
+            content = ""
+            for block in message.content:
+                if hasattr(block, 'text'):
+                    content += block.text
+            
+            # Save full output
+            output_file = output_path / f"{task_id}_output.md"
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(content)
+            
+            # Extract and save final output to subfolder
+            final_output = extract_final_output(content, task_id)
+            if final_output:
+                final_dir = output_path / "final"
+                final_dir.mkdir(parents=True, exist_ok=True)
+                final_file = final_dir / f"{task_id}.md"
+                with open(final_file, "w", encoding="utf-8") as f:
+                    f.write(final_output)
+                return (task_id, True, f"Saved to {output_file} and {final_file}")
+            else:
+                return (task_id, True, f"Saved to {output_file} (final output extraction failed)")
+            
+        except Exception as e:
+            # Save error
+            error_file = output_path / f"{task_id}_error.json"
+            with open(error_file, "w", encoding="utf-8") as f:
+                json.dump({
+                    "task_id": task_id,
+                    "error_type": type(e).__name__,
+                    "error": str(e)
+                }, f, indent=2)
+            
+            return (task_id, False, f"Error: {str(e)}")
+    
+    # Process tasks with concurrency control
+    succeeded = 0
+    failed = 0
+    start_time = time.time()
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        future_to_task = {
+            executor.submit(process_task, task, i): (i, task.get("task_id", f"task_{i}"))
+            for i, task in enumerate(tasks)
+        }
+        
+        # Process results as they complete
+        for future in as_completed(future_to_task):
+            index, task_id = future_to_task[future]
+            try:
+                result_task_id, success, message = future.result()
+                if success:
+                    succeeded += 1
+                    print(f"  [{index+1}/{len(tasks)}] ✓ {result_task_id}: {message}")
+                else:
+                    failed += 1
+                    print(f"  [{index+1}/{len(tasks)}] ✗ {result_task_id}: {message}", file=sys.stderr)
+            except Exception as e:
+                failed += 1
+                print(f"  [{index+1}/{len(tasks)}] ✗ {task_id}: Unexpected error: {e}", file=sys.stderr)
+            
+            # Rate limiting delay
+            if delay > 0:
+                time.sleep(delay)
+    
+    elapsed_time = time.time() - start_time
+    
+    print(f"\n{'='*60}")
+    print(f"Complete: {succeeded} succeeded, {failed} failed")
+    print(f"Time elapsed: {elapsed_time:.1f} seconds ({elapsed_time/60:.1f} minutes)")
+    print(f"Results saved to: {output_path}")
+    print(f"{'='*60}")
+
+
 def list_batches(limit: int = 10) -> None:
     """
     List recent batches.
@@ -370,7 +568,7 @@ def list_batches(limit: int = 10) -> None:
     print(f"\nRecent batches (up to {limit}):")
     print("-" * 80)
     
-    batches = client.batches.list(limit=limit)
+    batches = client.beta.messages.batches.list(limit=limit)
     for batch in batches.data:
         status_icon = "✓" if batch.processing_status == "ended" else "⏳"
         print(f"  {status_icon} {batch.id}  |  {batch.processing_status}  |  {batch.created_at}")
@@ -400,6 +598,10 @@ Examples:
     
     # List recent batches
     python batch_processor.py list
+    
+    # Test with regular API (for quick testing before batch)
+    python batch_processor.py test --input tasks.json --output ./test_results
+    python batch_processor.py test --input tasks.json --workers 3 --delay 2.0
         """
     )
     
@@ -424,6 +626,14 @@ Examples:
     list_parser = subparsers.add_parser("list", help="List recent batches")
     list_parser.add_argument("--limit", "-n", type=int, default=10, help="Number of batches to show")
     
+    # Test command (regular API)
+    test_parser = subparsers.add_parser("test", help="Test with regular API calls (for quick testing)")
+    test_parser.add_argument("--input", "-i", required=True, help="Input JSON file with tasks")
+    test_parser.add_argument("--output", "-o", default="./test_results", help="Output directory (default: ./test_results)")
+    test_parser.add_argument("--model", "-m", default=DEFAULT_MODEL, help=f"Model to use (default: {DEFAULT_MODEL})")
+    test_parser.add_argument("--workers", "-w", type=int, default=5, help="Number of concurrent requests (default: 5)")
+    test_parser.add_argument("--delay", "-d", type=float, default=1.2, help="Delay between requests in seconds (default: 1.2)")
+    
     args = parser.parse_args()
     
     if args.command == "submit":
@@ -434,6 +644,8 @@ Examples:
         retrieve_results(args.batch_id, args.output)
     elif args.command == "list":
         list_batches(args.limit)
+    elif args.command == "test":
+        process_regular_api(args.input, args.output, args.model, args.workers, args.delay)
     else:
         parser.print_help()
 
