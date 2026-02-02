@@ -12,40 +12,111 @@ This toolkit enables you to:
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
+# 1. Set up virtual environment (recommended)
+python3 -m venv venv
+source venv/bin/activate
+
+# 2. Install dependencies
+pip install --upgrade pip
 pip install anthropic python-dotenv
 
-# 2. Set up your API key
+# 3. Set up your API key
 # Create .env file and add your ANTHROPIC_API_KEY:
 # ANTHROPIC_API_KEY=your-api-key-here
 
-# 3. Set up SKILL files (see SKILL Setup below)
+# 4. Set up SKILL files (see SKILL Setup below)
 # Download the SKILL files and place them in: ./skills/automatic-question-generation/
 
-# 4. Fill in tasks.csv with your tasks
+# 5. Fill in tasks.csv with your tasks
 # Reference materials go in ./reference_materials/ folder
 
-# 5. Convert CSV to JSON
+# 6. Convert CSV to JSON
 python input_generator.py from-csv --input tasks.csv --output tasks.json
 
-# 6. Validate the input
+# 7. Validate the input
 python input_generator.py validate --input tasks.json
 
-# 7. Submit the batch (runs overnight)
+# 8. Submit the batch (runs overnight)
 python batch_processor.py submit --input tasks.json
 
-# 8. Check status next morning
+# 9. Check status next morning
 python batch_processor.py status --batch-id batch_xxx
 
-# 9. Download results when complete
+# 10. Download results when complete
 python batch_processor.py results --batch-id batch_xxx --output ./quiz_outputs/
 ```
 
+**Note:** Remember to activate your virtual environment (`source venv/bin/activate`) each time you open a new terminal session.
+
 ## Installation
+
+### Using Virtual Environment (Recommended)
+
+```bash
+# Create virtual environment (first time only)
+python3 -m venv venv
+
+# Activate virtual environment (every time you work on the project)
+source venv/bin/activate
+
+# Install dependencies (first time only)
+pip install --upgrade pip
+pip install anthropic python-dotenv
+
+# Verify installation
+pip list | grep -E "(anthropic|python-dotenv)"
+
+# When done working, deactivate:
+deactivate
+```
+
+### Without Virtual Environment
 
 ```bash
 pip install anthropic python-dotenv
 ```
+
+## Quick Reference
+
+### Virtual Environment Commands
+
+```bash
+# Navigate to project directory
+cd /Users/WuYung-Hsuan/Desktop/coding-stuff/AI-Externalities_Batch-AQG
+
+# Activate virtual environment (do this every time you open a new terminal)
+source venv/bin/activate
+
+# Deactivate when done
+deactivate
+```
+
+### Workflow Commands
+
+```bash
+# Convert CSV to JSON
+python input_generator.py from-csv --input tasks.csv --output tasks.json
+
+# Validate input
+python input_generator.py validate --input tasks.json
+
+# Submit batch (dry run first to test)
+python batch_processor.py submit --input tasks.json --dry-run
+
+# Submit batch for real
+python batch_processor.py submit --input tasks.json
+
+# Check batch status
+python batch_processor.py status --batch-id YOUR_BATCH_ID
+
+# Retrieve results when complete
+python batch_processor.py results --batch-id YOUR_BATCH_ID --output ./results/
+
+# List recent batches
+python batch_processor.py list
+```
+
+**Remember:** Always activate your virtual environment (`source venv/bin/activate`) before running these commands!
 
 ## SKILL Setup
 

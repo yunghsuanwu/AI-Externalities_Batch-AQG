@@ -2,59 +2,15 @@
   "tasks": [
     {
       "domain": "Health",
-      "use_case": "Medication adherence",
-      "use_case_description": "Understanding prescription medication instructions and interactions",
-      "knowledge_dimensions": "factual/procedural",
-      "task_id": "thyroid-medication",
-      "task_title": "Thyroid Medication Management",
-      "reference_material": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2017/021342s023lbl.pdf",
-      "reference_material_source": "FDA prescribing information for Synthroid (levothyroxine)",
-      "task_description": "Learn proper administration of thyroid medication including timing, food interactions, and supplement considerations.",
-      "cq_format": "single-select MCQs with 5 options and one correct answer"
-    },
-    {
-      "domain": "Finance",
-      "use_case": "Tax preparation",
-      "use_case_description": "Understanding federal income tax forms and requirements",
-      "knowledge_dimensions": "factual/procedural/conceptual",
-      "task_id": "w4-withholding",
-      "task_title": "W-4 Tax Withholding",
-      "reference_material": "https://www.irs.gov/pub/irs-pdf/fw4.pdf",
-      "reference_material_source": "IRS Form W-4 (2024)",
-      "task_description": "Learn how to properly complete Form W-4 for tax withholding, including claiming dependents and adjusting for multiple jobs.",
-      "cq_format": "single-select MCQs with 5 options and one correct answer"
-    },
-    {
-      "domain": "Health",
-      "use_case": "Chronic disease management",
-      "use_case_description": "Understanding blood pressure monitoring and management",
-      "knowledge_dimensions": "factual/conceptual/procedural",
-      "task_id": "blood-pressure-basics",
-      "task_title": "Blood Pressure Monitoring",
-      "task_description": "Learn to understand blood pressure readings, categories, and when to seek medical attention.",
-      "cq_format": "single-select MCQs with 5 options and one correct answer",
-      "_note": "No reference_material = Path A (source discovery)"
-    },
-    {
-      "domain": "Civic",
-      "use_case": "Voting rights",
-      "use_case_description": "Understanding voter registration and election procedures",
-      "knowledge_dimensions": "factual/procedural",
-      "task_id": "voter-registration",
-      "task_title": "Voter Registration Process",
-      "task_description": "Learn the requirements and process for registering to vote in federal elections.",
-      "cq_format": "single-select MCQs with 4 options and one correct answer"
-    },
-    {
-      "domain": "Finance",
-      "use_case": "Credit management",
-      "use_case_description": "Understanding credit reports and scores",
-      "knowledge_dimensions": "factual/conceptual",
-      "task_id": "credit-report-reading",
-      "task_title": "Reading Credit Reports",
-      "reference_material": "https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/",
-      "reference_material_source": "Consumer Financial Protection Bureau",
-      "task_description": "Learn how to read and interpret credit reports, understand scoring factors, and identify errors.",
+      "use_case": "Self-administered medications",
+      "use_case_description": "Learn about a drug\u2019s intended use, directions, effects, and side effects from easily accessible medical documentations (e.g., drug labels, online articles)",
+      "knowledge_dimensions": "Factual",
+      "task_id": "synthroid",
+      "task_title": "Synthroid",
+      "reference_material": "/Users/WuYung-Hsuan/Desktop/coding-stuff/AI-Externalities_Batch-AQG/reference_materials/synthroid.pdf",
+      "reference_material_source": "Manufacturer educational materials",
+      "comprehension_quiz_source": "Co-created with AI",
+      "task_inspiration": "Hypothyroidism is a common medical condition people experience, and Synthroid is one of the common prescribed drugs used to treat it.",
       "cq_format": "single-select MCQs with 5 options and one correct answer"
     }
   ]
