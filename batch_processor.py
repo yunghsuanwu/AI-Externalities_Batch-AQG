@@ -317,17 +317,28 @@ def check_status(batch_id: str) -> dict:
     client = anthropic.Anthropic(api_key=api_key)
     batch = client.beta.messages.batches.retrieve(batch_id)
     
+    # Safely unpack request_counts – the SDK type may not expose
+    # all attributes (e.g., no `.total` field), so use getattr.
+    request_counts = getattr(batch, "request_counts", None)
+    if request_counts is not None:
+        total = getattr(request_counts, "total", None)
+        succeeded = getattr(request_counts, "succeeded", None)
+        failed = getattr(request_counts, "errored", None)
+        processing = getattr(request_counts, "processing", None)
+    else:
+        total = succeeded = failed = processing = None
+    
     status = {
         "batch_id": batch.id,
         "status": batch.processing_status,
         "created_at": str(batch.created_at),
         "ended_at": str(batch.ended_at) if batch.ended_at else None,
         "request_counts": {
-            "total": batch.request_counts.total if hasattr(batch, 'request_counts') else None,
-            "succeeded": batch.request_counts.succeeded if hasattr(batch, 'request_counts') else None,
-            "failed": batch.request_counts.errored if hasattr(batch, 'request_counts') else None,
-            "processing": batch.request_counts.processing if hasattr(batch, 'request_counts') else None,
-        }
+            "total": total,
+            "succeeded": succeeded,
+            "failed": failed,
+            "processing": processing,
+        },
     }
     
     print(f"\nBatch Status: {batch_id}")
