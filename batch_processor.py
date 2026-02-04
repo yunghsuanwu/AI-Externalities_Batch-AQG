@@ -346,9 +346,22 @@ def check_status(batch_id: str) -> dict:
     print(f"  Created: {status['created_at']}")
     if status['ended_at']:
         print(f"  Ended: {status['ended_at']}")
-    if status['request_counts']['total']:
-        counts = status['request_counts']
-        print(f"  Progress: {counts['succeeded']}/{counts['total']} succeeded, {counts['failed']} failed")
+    
+    # Display progress if we have any count information
+    counts = status['request_counts']
+    if counts['total'] is not None:
+        print(f"  Progress: {counts['succeeded'] or 0}/{counts['total']} succeeded, {counts['failed'] or 0} failed")
+    elif counts['succeeded'] is not None or counts['failed'] is not None or counts['processing'] is not None:
+        # Show what we have even if total is missing
+        parts = []
+        if counts['succeeded'] is not None:
+            parts.append(f"{counts['succeeded']} succeeded")
+        if counts['failed'] is not None:
+            parts.append(f"{counts['failed']} failed")
+        if counts['processing'] is not None:
+            parts.append(f"{counts['processing']} processing")
+        if parts:
+            print(f"  Progress: {', '.join(parts)}")
     
     return status
 
