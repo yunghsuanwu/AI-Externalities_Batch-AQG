@@ -54,7 +54,9 @@ The below information is what you should use when filling out the **Metadata** a
 * Use case description: [description]
 * Knowledge dimensions: [factual/conceptual/procedural/metacognitive]
 * Reference material (if any): [URL or filename]
+* Reference material content (if any): [directly extracted text from PDF or other source]
 * Sample questions (if any): [URL or filename]
+* Sample questions content (if any): [directly extracted text from sample questions document]
 * Reference material source (if any): [source description]
 * Comprehension quiz source (if any): [source description]
 * Task inspiration (if any): [inspiration source]
@@ -72,7 +74,9 @@ The below information is what you should use when filling out the **Metadata** a
 | Use case description | Metadata: Use case description | Consistency Agent |
 | Knowledge dimensions | Metadata: Knowledge dimensions | Consistency Agent |
 | Reference material | Source for Question Writer | Path detection, Sample Question Extractor, Question Writer |
+| Reference material content | Source for Question Writer (direct text) | Path detection, Sample Question Extractor, Question Writer |
 | Sample questions | Inspiration for Question Writer | Sample Question Extractor (if extraction requested), Question Writer |
+| Sample questions content | Inspiration for Question Writer (direct text) | Sample Question Extractor (if extraction requested), Question Writer |
 | Reference material source | Metadata: Reference material source | Consistency Agent |
 | Comprehension quiz source | Metadata: Comprehension quiz source | Consistency Agent |
 | Task inspiration | Metadata: Task inspiration | Consistency Agent |
@@ -92,15 +96,28 @@ The below information is what you should use when filling out the **Metadata** a
 - Look for attached PDF in the trigger message
 - Use attached PDF as source material
 
+**If direct content provided (Reference material content / Sample questions content):**
+- Use the provided text directly as source material
+- No fetching or file access needed
+- This is the preferred method when text has already been extracted from PDFs upstream
+
 **If neither provided:**
 - Trigger Path A (Source Discovery)
+
+**Priority order when multiple input types are provided:**
+1. Direct content (if "Reference material content" or "Sample questions content" has value) — use this
+2. Attached PDF (if filename provided and file is attached) — use this
+3. URL (if valid URL provided) — fetch and use this
+4. None — trigger Path A
 
 ### Input Detection Logic
 
 ```
-IF "Reference material (if any)" OR "Sample questions (if any)" has a value (URL or filename):
+IF "Reference material (if any)" OR "Reference material content (if any)" OR "Sample questions (if any)" OR "Sample questions content (if any)" has a value:
     → Path B (skip SOURCE_DISCOVERY and DOMAIN_EXPERT)
-    → Fetch URL or use attached PDF
+    → IF content provided directly: Use the provided text as-is
+    → ELSE IF URL provided: Fetch URL
+    → ELSE IF filename provided: Use attached PDF
     IF additional prompt includes "extract sample questions":
         → Run SAMPLE_QUESTION_EXTRACTOR first
         → Filter sample questions to reference material scope

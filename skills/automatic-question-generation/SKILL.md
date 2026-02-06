@@ -49,7 +49,7 @@ Psychometric Review → Curriculum Design → Formatting
 ```
 
 ### Path B: Source Materials Provided
-When given reference material and/or sample questions (as PDF attachments or URLs):
+When given reference material and/or sample questions (as PDF attachments, URLs, or directly extracted text content):
 ```
 Topic + Sources → [Sample Question Extraction*] → Question Writing → 
 Psychometric Review → Curriculum Design → Formatting
@@ -115,7 +115,9 @@ The below information is what you should use when filling out the **Metadata** a
 * Use case description: [description]
 * Knowledge dimensions: [factual/conceptual/procedural/metacognitive]
 * Reference material (if any): [URL or filename]
+* Reference material content (if any): [directly extracted text from PDF or other source]
 * Sample questions (if any): [URL or filename]
+* Sample questions content (if any): [directly extracted text from sample questions document]
 * Reference material source (if any): [source description]
 * Comprehension quiz source (if any): [source description]
 * Task inspiration (if any): [inspiration source]
@@ -134,7 +136,9 @@ The below information is what you should use when filling out the **Metadata** a
 | Use case description | Yes | - | Brief description for documentation |
 | Knowledge dimensions | Yes | - | Bloom's taxonomy: factual, conceptual, procedural, metacognitive |
 | Reference material | Optional | - | PDF attachment OR URL to fetch. Triggers Path B if provided |
+| Reference material content | Optional | - | Directly extracted text from PDF or other source. Triggers Path B if provided. Use when text has already been extracted from a document. |
 | Sample questions | Optional | - | PDF attachment OR URL. Used as inspiration for question style |
+| Sample questions content | Optional | - | Directly extracted text from sample questions document. Use when text has already been extracted. |
 | Reference material source | Optional | - | Documentation of where material came from |
 | Comprehension quiz source | Optional | - | Documentation of question source |
 | Task inspiration | Optional | - | What inspired this task |
@@ -146,9 +150,11 @@ The below information is what you should use when filling out the **Metadata** a
 ### Path Detection Logic
 
 ```
-IF "Reference material" OR "Sample questions" is provided:
+IF "Reference material" OR "Reference material content" OR "Sample questions" OR "Sample questions content" is provided:
     → Path B (start with Question Writer)
-    → Fetch URL if provided, or use attached PDF
+    → IF URL provided: Fetch URL
+    → IF filename provided: Use attached PDF
+    → IF content provided: Use directly provided text (no fetching needed)
     IF "extract sample questions" prompt is included:
         → Run Sample Question Extractor BEFORE Question Writer
         → Filter sample questions to reference material scope
@@ -199,15 +205,17 @@ Additional prompt: Look for a specific bank's fee schedule document, something l
 
 **CRITICAL:** If the input mentions reference materials or sample questions (i.e., the "Reference material" or "Sample questions" field is filled in) but:
 - No PDF files are actually attached, AND
-- No valid, fetchable URLs are provided
+- No valid, fetchable URLs are provided, AND
+- No direct text content is provided in the "Reference material content" or "Sample questions content" fields
 
 **DO NOT** attempt to perform a web search or find alternative sources independently.
 
 **Instead, STOP and ask the human for clarification:**
-> "I see you've indicated reference materials should be provided, but I don't see any attached PDFs or valid URLs. Could you please:
+> "I see you've indicated reference materials should be provided, but I don't see any attached PDFs, valid URLs, or direct text content. Could you please:
 > 1. Attach the PDF file(s), OR
 > 2. Provide the URL(s) to fetch, OR
-> 3. Confirm you'd like me to proceed with Path A (source discovery) instead?"
+> 3. Provide the extracted text content directly in the 'Reference material content' field, OR
+> 4. Confirm you'd like me to proceed with Path A (source discovery) instead?"
 
 This prevents generating questions based on incorrect or unintended source material.
 

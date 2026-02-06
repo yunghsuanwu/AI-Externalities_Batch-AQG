@@ -36,7 +36,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
 try:
-    # Prefer PyPDF2 if available for PDF text extraction
+    import pdfplumber  # type: ignore[import-untyped]
+except ImportError:  # pragma: no cover - optional dependency
+    pdfplumber = None
+
+try:
     import PyPDF2  # type: ignore[import-untyped]
 except ImportError:  # pragma: no cover - optional dependency
     PyPDF2 = None
@@ -180,7 +184,7 @@ def _load_reference_material_content(reference_value: str, max_chars: int = 5000
       the URL string itself is already included in the prompt.
     - If the value looks like a local path or filename:
         * Resolve relative paths against ./reference_materials/
-        * If it's a PDF and PyPDF2 is installed, extract text
+        * If it's a PDF: use pdfplumber if available, else PyPDF2
         * Otherwise, try to read it as a text file (UTF-8, fallback to errors='ignore')
     - The returned text is truncated to max_chars to avoid blowing up context size.
     """
@@ -202,24 +206,34 @@ def _load_reference_material_content(reference_value: str, max_chars: int = 5000
     text: Optional[str] = None
 
     if ref_path.suffix.lower() == ".pdf":
-        if PyPDF2 is None:
-            print(
-                f"Warning: PyPDF2 not installed; cannot extract text from PDF: {ref_path}",
-                file=sys.stderr,
-            )
-        else:
+        if pdfplumber is not None:
+            try:
+                with pdfplumber.open(ref_path) as pdf:
+                    pages_text = []
+                    for page in pdf.pages:
+                        page_text = page.extract_text() or ""
+                        pages_text.append(page_text)
+                    text = "\n\n".join(pages_text)
+            except Exception as e:  # pragma: no cover - defensive
+                print(f"Warning: pdfplumber failed for {ref_path}: {e}", file=sys.stderr)
+                text = None
+        if text is None and PyPDF2 is not None:
             try:
                 with ref_path.open("rb") as f:
                     reader = PyPDF2.PdfReader(f)
                     pages_text = []
                     for page in reader.pages:
-                        # Some PDFs may have pages without extractable text
                         page_text = page.extract_text() or ""
                         pages_text.append(page_text)
                     text = "\n\n".join(pages_text)
             except Exception as e:  # pragma: no cover - defensive
-                print(f"Warning: failed to extract PDF text from {ref_path}: {e}", file=sys.stderr)
+                print(f"Warning: PyPDF2 failed for {ref_path}: {e}", file=sys.stderr)
                 text = None
+        if text is None and pdfplumber is None and PyPDF2 is None:
+            print(
+                f"Warning: Neither pdfplumber nor PyPDF2 installed; cannot extract PDF: {ref_path}",
+                file=sys.stderr,
+            )
     else:
         # Fallback: treat as plain text file
         try:
@@ -283,11 +297,10 @@ def format_task_input(task: dict) -> str:
                 value = "/".join(value)
             lines.append(f"* {label}: {value}")
 
-    # If reference_material points to a local file (e.g., a PDF in ./reference_materials/),
-    # load its text content so Claude can actually read it, not just the filename/path.
+    # Use pre-extracted reference_material_content if present; else load from path (fallback).
     ref_value = task.get("reference_material")
     if ref_value:
-        ref_content = _load_reference_material_content(ref_value)
+        ref_content = task.get("reference_material_content") or _load_reference_material_content(ref_value)
         if ref_content:
             lines.append("")
             lines.append("Reference material content (from local file):")
@@ -323,7 +336,22 @@ def submit_batch(input_file: str, model: str = DEFAULT_MODEL, dry_run: bool = Fa
         tasks = data
     else:
         raise ValueError("Input must be a JSON array or object with 'tasks' array")
-    
+
+    # Dry-run: require reference_material_content for every task with local reference_material
+    if dry_run:
+        missing = []
+        for task in tasks:
+            ref = task.get("reference_material")
+            if ref and not ref.startswith(("http://", "https://")):
+                content = task.get("reference_material_content")
+                if not content or not str(content).strip():
+                    missing.append(task.get("task_id", "<no task_id>"))
+        if missing:
+            raise ValueError(
+                "reference_material_content is missing or empty for tasks with local reference_material. "
+                "Run 'input_generator.py from-csv' to extract and embed content. Task IDs: " + ", ".join(missing)
+            )
+
     print(f"Found {len(tasks)} tasks to process")
     
     # Build system prompt

@@ -22,6 +22,16 @@ import sys
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
+try:
+    import pdfplumber  # type: ignore[import-untyped]
+except ImportError:
+    pdfplumber = None
+
+try:
+    import PyPDF2  # type: ignore[import-untyped]
+except ImportError:
+    PyPDF2 = None
+
 
 # ============================================================================
 # FIELD DEFINITIONS
@@ -159,6 +169,76 @@ def create_blank_template(count: int = 1) -> dict:
 
 
 # ============================================================================
+# REFERENCE MATERIAL EXTRACTION
+# ============================================================================
+
+DEFAULT_MAX_REFERENCE_CHARS = 50000
+
+
+def _extract_text_from_path(ref_path: Path, max_chars: int = DEFAULT_MAX_REFERENCE_CHARS) -> Optional[str]:
+    """
+    Extract text from a local file. Prefer pdfplumber for PDFs, then PyPDF2, then plain text.
+    Returns None on failure or if no library is available. Truncates to max_chars.
+    """
+    if not ref_path.exists():
+        return None
+
+    text: Optional[str] = None
+
+    if ref_path.suffix.lower() == ".pdf":
+        if pdfplumber is not None:
+            try:
+                with pdfplumber.open(ref_path) as pdf:
+                    pages_text = []
+                    for page in pdf.pages:
+                        page_text = page.extract_text() or ""
+                        pages_text.append(page_text)
+                    text = "\n\n".join(pages_text)
+            except Exception as e:
+                print(f"Warning: pdfplumber failed for {ref_path}: {e}", file=sys.stderr)
+                text = None
+        if text is None and PyPDF2 is not None:
+            try:
+                with ref_path.open("rb") as f:
+                    reader = PyPDF2.PdfReader(f)
+                    pages_text = []
+                    for page in reader.pages:
+                        page_text = page.extract_text() or ""
+                        pages_text.append(page_text)
+                    text = "\n\n".join(pages_text)
+            except Exception as e:
+                print(f"Warning: PyPDF2 failed for {ref_path}: {e}", file=sys.stderr)
+                text = None
+        if text is None and (pdfplumber is None and PyPDF2 is None):
+            print(
+                f"Warning: Neither pdfplumber nor PyPDF2 installed; cannot extract PDF: {ref_path}",
+                file=sys.stderr,
+            )
+    else:
+        try:
+            text = ref_path.read_text(encoding="utf-8", errors="ignore")
+        except Exception as e:
+            print(f"Warning: failed to read file {ref_path}: {e}", file=sys.stderr)
+            text = None
+
+    if text is None:
+        return None
+
+    text = text.strip()
+    if not text:
+        return None
+
+    if len(text) > max_chars:
+        print(
+            f"Info: {ref_path.name} truncated to first {max_chars} characters.",
+            file=sys.stderr,
+        )
+        text = text[:max_chars] + "\n\n[Reference material truncated for length]"
+
+    return text
+
+
+# ============================================================================
 # CSV CONVERSION
 # ============================================================================
 
@@ -211,7 +291,16 @@ def convert_from_csv(csv_path: str, reference_materials_dir: Path = None) -> dic
             if missing:
                 print(f"Warning: Row {row_num} missing required fields: {missing}", file=sys.stderr)
                 continue
-            
+
+            # Extract reference material content for local files (PDF/text)
+            ref_value = task.get("reference_material")
+            if ref_value and not ref_value.startswith(("http://", "https://")):
+                ref_path = Path(ref_value)
+                if not ref_path.is_absolute():
+                    ref_path = reference_materials_dir / ref_path
+                extracted = _extract_text_from_path(ref_path)
+                task["reference_material_content"] = extracted  # string or None
+
             tasks.append(task)
     
     print(f"Converted {len(tasks)} tasks from CSV")
