@@ -35,6 +35,12 @@ from typing import Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
+try:
+    # Prefer PyPDF2 if available for PDF text extraction
+    import PyPDF2  # type: ignore[import-untyped]
+except ImportError:  # pragma: no cover - optional dependency
+    PyPDF2 = None
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -43,7 +49,7 @@ load_dotenv()
 # CONFIGURATION
 # ============================================================================
 
-DEFAULT_MODEL = "claude-sonnet-4-5-20250929"  # Cost-effective for batch
+DEFAULT_MODEL = "claude-opus-4-5-20250929"  # Use Claude Opus 4.5 by default
 MAX_TOKENS = 16000  # Sufficient for full quiz output
 # Try local skills directory first, then fall back to the original path
 SKILL_DIR = Path(__file__).parent / "skills" / "automatic-question-generation"
@@ -164,6 +170,83 @@ def extract_final_output(full_content: str, task_id: str) -> Optional[str]:
 # INPUT FORMATTING
 # ============================================================================
 
+
+def _load_reference_material_content(reference_value: str, max_chars: int = 50000) -> Optional[str]:
+    """
+    Given a reference_material field value, try to load and return its text content.
+
+    Behavior:
+    - If the value is an HTTP(S) URL, we do NOT fetch it here (just return None);
+      the URL string itself is already included in the prompt.
+    - If the value looks like a local path or filename:
+        * Resolve relative paths against ./reference_materials/
+        * If it's a PDF and PyPDF2 is installed, extract text
+        * Otherwise, try to read it as a text file (UTF-8, fallback to errors='ignore')
+    - The returned text is truncated to max_chars to avoid blowing up context size.
+    """
+    # Do not attempt network fetching here
+    if reference_value.startswith("http://") or reference_value.startswith("https://"):
+        return None
+
+    base_dir = Path(__file__).parent
+    ref_path = Path(reference_value)
+
+    # If it's not absolute, assume it's inside ./reference_materials/
+    if not ref_path.is_absolute():
+        ref_path = base_dir / "reference_materials" / ref_path
+
+    if not ref_path.exists():
+        print(f"Warning: reference material not found at path: {ref_path}", file=sys.stderr)
+        return None
+
+    text: Optional[str] = None
+
+    if ref_path.suffix.lower() == ".pdf":
+        if PyPDF2 is None:
+            print(
+                f"Warning: PyPDF2 not installed; cannot extract text from PDF: {ref_path}",
+                file=sys.stderr,
+            )
+        else:
+            try:
+                with ref_path.open("rb") as f:
+                    reader = PyPDF2.PdfReader(f)
+                    pages_text = []
+                    for page in reader.pages:
+                        # Some PDFs may have pages without extractable text
+                        page_text = page.extract_text() or ""
+                        pages_text.append(page_text)
+                    text = "\n\n".join(pages_text)
+            except Exception as e:  # pragma: no cover - defensive
+                print(f"Warning: failed to extract PDF text from {ref_path}: {e}", file=sys.stderr)
+                text = None
+    else:
+        # Fallback: treat as plain text file
+        try:
+            text = ref_path.read_text(encoding="utf-8", errors="ignore")
+        except Exception as e:  # pragma: no cover - defensive
+            print(f"Warning: failed to read reference material file {ref_path}: {e}", file=sys.stderr)
+            text = None
+
+    if text is None:
+        return None
+
+    text = text.strip()
+    if not text:
+        return None
+
+    # Truncate very long documents to keep prompts manageable
+    if len(text) > max_chars:
+        print(
+            f"Info: reference material at {ref_path} is long; "
+            f"truncating to first {max_chars} characters for prompt.",
+            file=sys.stderr,
+        )
+        text = text[:max_chars] + "\n\n[Reference material truncated for length]"
+
+    return text
+
+
 def format_task_input(task: dict) -> str:
     """
     Format a task dictionary into the expected input prompt.
@@ -199,6 +282,16 @@ def format_task_input(task: dict) -> str:
             if key == "knowledge_dimensions" and isinstance(value, list):
                 value = "/".join(value)
             lines.append(f"* {label}: {value}")
+
+    # If reference_material points to a local file (e.g., a PDF in ./reference_materials/),
+    # load its text content so Claude can actually read it, not just the filename/path.
+    ref_value = task.get("reference_material")
+    if ref_value:
+        ref_content = _load_reference_material_content(ref_value)
+        if ref_content:
+            lines.append("")
+            lines.append("Reference material content (from local file):")
+            lines.append(ref_content)
     
     # Additional prompts (if any)
     if "additional_prompts" in task and task["additional_prompts"]:
