@@ -53,7 +53,7 @@ load_dotenv()
 # CONFIGURATION
 # ============================================================================
 
-DEFAULT_MODEL = "claude-opus-4-5-20250929"  # Use Claude Opus 4.5 by default
+DEFAULT_MODEL = "claude-opus-4-5-20251101"  # Use Claude Opus 4.5 by default
 MAX_TOKENS = 16000  # Sufficient for full quiz output
 # Try local skills directory first, then fall back to the original path
 SKILL_DIR = Path(__file__).parent / "skills" / "automatic-question-generation"
@@ -129,6 +129,15 @@ Output the final formatted quiz in Empirica template format.
 # OUTPUT EXTRACTION
 # ============================================================================
 
+def _strip_quality_summary(content: str) -> str:
+    """Remove the Quality Summary section from the end of extracted content."""
+    for pattern in (r"\n---\s*\n\s*## Quality Summary.*", r"\n## Quality Summary.*"):
+        match = re.search(pattern, content, re.DOTALL)
+        if match:
+            return content[: match.start()].strip()
+    return content
+
+
 def extract_final_output(full_content: str, task_id: str) -> Optional[str]:
     """
     Extract the final output section from the full workflow output.
@@ -144,7 +153,7 @@ def extract_final_output(full_content: str, task_id: str) -> Optional[str]:
     
     match = re.search(pattern, full_content, re.DOTALL)
     if match:
-        return match.group(1).strip()
+        return _strip_quality_summary(match.group(1).strip())
     
     # Fallback: look for the Empirica template header pattern directly
     # This handles cases where the format might be slightly different
@@ -159,13 +168,15 @@ def extract_final_output(full_content: str, task_id: str) -> Optional[str]:
             r"\n## Workflow Summary",
             r"\n---\n\n## Workflow Summary",
             r"\n\*\*Estimated completion time:",
+            r"\n---\s*\n\s*## Quality Summary",
+            r"\n## Quality Summary",
         ]
         for marker in end_markers:
             end_match = re.search(marker, remaining, re.DOTALL)
             if end_match:
-                return remaining[:end_match.start()].strip()
-        # If no end marker, take everything from start to end
-        return remaining.strip()
+                return _strip_quality_summary(remaining[: end_match.start()].strip())
+        # If no end marker, strip Quality Summary if present and return the rest
+        return _strip_quality_summary(remaining.strip())
     
     return None
 
