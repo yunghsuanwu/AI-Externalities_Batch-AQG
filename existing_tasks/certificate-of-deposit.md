@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how banks use deposit insurance to protect customers and how interest accrual works on savings products? |
+| **Question** | Participants | How well do you understand how banks and credit unions generate revenue from customer accounts and the factors that influence account fees? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |

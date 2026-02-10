@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common banking terms and definitions such as deposit accounts, FDIC insurance, and debit card liability? |
+| **Question** | Participants | How familiar are you with common banking terms and definitions such as interest rates, deposit accounts, and maturity dates? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how banks protect customer deposits and the regulations governing consumer versus commercial accounts? |
+| **Question** | Participants | How well do you understand how banks and credit unions generate revenue from customer accounts and the factors that influence account fees? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |

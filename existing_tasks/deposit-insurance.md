@@ -9,7 +9,7 @@
 | **Reference material filename** | deposit-insurance.pdf |
 | **Reference material source** | Federal Deposit Insurance Corporation (FDIC): https://www.fdic.gov/resources/deposit-insurance/brochures/deposits-at-a-glance |
 | **Comprehension quiz source** | AQG |
-| **Task inspiration** | Based on education materials by 1) CFPB Consumer Tools (https://www.consumerfinance.gov/consumer-tools/bank-accounts/); 2) Major Bank Personal Banking Fee Schedule; 3) Major Bank Educational Resources |
+| **Task inspiration** | Based on education materials by 1. CFPB Consumer Tools (https://www.consumerfinance.gov/consumer-tools/bank-accounts/); 2. Major Bank Personal Banking Fee Schedule; 3. Major Bank Educational Resources |
 | **AI system prompt** | You are a helpful AI assistant that provides clear, informative, and educational information. |
 
 | **Task data** | Displayed for participants |
@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common banking terms and definitions such as checking accounts, savings accounts, and certificates of deposit? |
+| **Question** | Participants | How familiar are you with common banking terms and definitions such as interest rates, deposit accounts, and maturity dates? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how banks protect customer deposits and the role of federal agencies in ensuring the safety of your money? |
+| **Question** | Participants | How well do you understand how banks and credit unions generate revenue from customer accounts and the factors that influence account fees? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
