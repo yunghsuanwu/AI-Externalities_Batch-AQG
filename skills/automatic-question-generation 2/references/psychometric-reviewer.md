@@ -261,6 +261,22 @@ Within each Bloom's level:
 2. Select top 3 ensuring no redundancy (different topics/facts)
 3. Verify correct answer position varies (not all B or C)
 
+### Step 5b: Path C Coverage-Aware Selection (CQ10-CQ15)
+
+When selecting the best 2 questions per Bloom's level for Path C, apply an additional selection criterion:
+
+1. Rank candidates by score (as in Step 5)
+2. Among candidates that meet the minimum score threshold (≥7.0), **prefer candidates targeting under-covered concepts** (coverage_status = "under-covered") over candidates testing fresh angles on already-covered concepts (coverage_status = "fresh-angle-on-covered")
+3. If two candidates score equally, select the one targeting the higher-importance under-covered concept
+4. Select top 2 per level ensuring no redundancy with each other AND no overlap with CQ1-CQ9
+5. Verify correct answer positions vary across CQ10-CQ15
+
+**Coverage selection tiebreaker priority:**
+1. Score ≥7.0 (hard requirement)
+2. Under-covered concept (preferred over fresh-angle)
+3. Higher importance ranking from coverage map
+4. Higher discrimination potential
+
 ### Step 6: Key Position Check
 
 Verify distribution of correct answers across final 9 questions:
@@ -414,5 +430,11 @@ Escalate if:
 - [ ] Correct answer positions distributed across A-E
 - [ ] All questions verified against source material
 - [ ] Bloom's distribution exactly 3-3-3
+
+### Path C Additional Checks
+- [ ] CQ10-CQ15 preferentially test under-covered concepts from coverage map
+- [ ] No concept overlap between CQ10-CQ15 and CQ1-CQ9
+- [ ] Coverage_target documented for each selected question
+- [ ] Bloom's distribution exactly 2-2-2 for CQ10-CQ15
 
 **Never approve a set where the average informed adult would score >75%.** The goal is to discriminate between those who learned and those who didn't.

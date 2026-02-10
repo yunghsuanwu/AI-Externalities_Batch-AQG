@@ -48,17 +48,62 @@ Coordinates the automatic question generation workflow between specialized agent
 
 ```
 1. INPUT_VALIDATION → verify existing file has CQ1-CQ9 and reference material is present
-2. QUESTION_WRITER → generates 9-12 candidate questions (3-4 per Bloom's level), avoiding overlap with CQ1-CQ9
-3. PSYCHOMETRIC_REVIEWER → enforces difficulty standards, selects best 2 per Bloom's level (6 total)
-4. CONSISTENCY_AGENT → appends CQ10-CQ15 to existing file; conditionally updates Task instructions
+2. MATERIAL_COVERAGE_ANALYSIS → compare CQ1-CQ9 against reference material to identify under-covered concepts
+3. QUESTION_WRITER → generates 9-12 candidate questions (3-4 per Bloom's level), prioritizing under-covered concepts
+4. PSYCHOMETRIC_REVIEWER → enforces difficulty standards, selects best 2 per Bloom's level (6 total)
+5. CONSISTENCY_AGENT → appends CQ10-CQ15 to existing file; conditionally updates Task instructions
 ```
 
 **Key differences from Paths A/B:**
 - Skips SOURCE_DISCOVERY, DOMAIN_EXPERT, and CURRICULUM_DESIGNER entirely
 - Does NOT generate or modify the Familiarity Quiz (FQ1-FQ4 are frozen)
 - Existing CQ1-CQ9, Metadata, and Familiarity Quiz are read-only
-- QUESTION_WRITER receives CQ1-CQ9 as context to avoid concept overlap
+- MATERIAL_COVERAGE_ANALYSIS produces a coverage map passed to QUESTION_WRITER
+- QUESTION_WRITER receives CQ1-CQ9 as context to avoid concept overlap AND the coverage map to prioritize under-covered material
 - CONSISTENCY_AGENT operates in "expansion mode" (append + conditional update)
+
+#### Material Coverage Analysis (Path C, Step 2)
+
+This step runs AFTER input validation and BEFORE question writing. It systematically compares the existing CQ1-CQ9 against the reference material to produce a **coverage map** that guides new question generation.
+
+**Procedure:**
+
+1. **Extract reference material concepts**: Parse the reference material and identify all distinct key concepts, facts, thresholds, procedures, relationships, and themes. Group them into logical topic clusters.
+
+2. **Map existing CQ coverage**: For each CQ1-CQ9, identify which specific concepts from the reference material it tests (both in the stem and in the correct answer / distractors).
+
+3. **Produce coverage map**:
+
+```json
+{
+  "covered_concepts": [
+    {
+      "concept": "Description of concept",
+      "tested_by": ["CQ1", "CQ5"],
+      "bloom_levels_tested": ["Remembering", "Understanding"]
+    }
+  ],
+  "under_covered_concepts": [
+    {
+      "concept": "Description of under-covered concept",
+      "importance": "high | medium | low",
+      "testability": "high | medium | low",
+      "suggested_bloom_levels": ["Remembering", "Applying"],
+      "rationale": "Why this concept is important and testable"
+    }
+  ],
+  "coverage_summary": {
+    "total_reference_concepts": 25,
+    "concepts_tested_by_cq1_cq9": 12,
+    "concepts_not_tested": 13,
+    "coverage_percentage": "48%"
+  }
+}
+```
+
+4. **Rank under-covered concepts** by combined importance and testability (high/high first) to produce a prioritized list for the QUESTION_WRITER.
+
+**Routing:** Pass the full coverage map to QUESTION_WRITER alongside the existing CQ1-CQ9 context and reference material content.
 
 ## Input Format
 
@@ -167,7 +212,8 @@ IF "path" == "C":
     → Validate: existing_task_content contains CQ1-CQ9
         → If missing: ERROR "existing_task_content for task_id: [task_id] does not contain CQ1-CQ9"
     → Extract CQ1-CQ9 content as context for Question Writer
-    → Pass reference_material_content + CQ1-CQ9 context to QUESTION_WRITER
+    → Run MATERIAL_COVERAGE_ANALYSIS: compare CQ1-CQ9 against reference_material_content → produce coverage_map
+    → Pass reference_material_content + CQ1-CQ9 context + coverage_map to QUESTION_WRITER
     → Route through PSYCHOMETRIC_REVIEWER → CONSISTENCY_AGENT (expansion mode)
 ELSE IF "Reference material (if any)" OR "Reference material content (if any)" OR "Sample questions (if any)" OR "Sample questions content (if any)" has a value:
     → Path B (skip SOURCE_DISCOVERY and DOMAIN_EXPERT)
@@ -213,6 +259,8 @@ ELSE:
 - `existing_task_content` is missing or empty → ERROR, flag task_id and skip to next task in batch
 - `reference_material_content` is missing or empty → ERROR, flag task_id and skip to next task in batch
 - `existing_task_content` does not contain CQ1-CQ9 → ERROR, flag task_id and skip to next task in batch
+- MATERIAL_COVERAGE_ANALYSIS finds 0 under-covered concepts → flag as warning; QUESTION_WRITER should still generate questions testing different aspects/depths of already-covered concepts
+- MATERIAL_COVERAGE_ANALYSIS finds <6 under-covered concepts → QUESTION_WRITER may combine under-covered concepts with fresh angles on covered concepts
 - QUESTION_WRITER produces <9 candidates → request more questions before psychometric review
 - PSYCHOMETRIC_REVIEWER rejects >50% of candidates → route back to QUESTION_WRITER with specific guidance
 - PSYCHOMETRIC_REVIEWER finds <2 acceptable questions at any Bloom's level → route back to QUESTION_WRITER for that level
@@ -238,6 +286,7 @@ Before proceeding to next stage:
 - Metadata table in output is identical to input
 - Familiarity Quiz in output is identical to input
 - CQ10-CQ15 test concepts distinct from CQ1-CQ9
+- CQ10-CQ15 preferentially test under-covered concepts identified in the Material Coverage Analysis
 - Correct answer positions are distributed across CQ10-CQ15
 
 Never skip quality gates. Difficulty standards are non-negotiable.

@@ -70,15 +70,17 @@ When given an existing markdown task file (with populated Metadata, Task data, F
 ```
 1. Read existing task file and reference material in full
 2. Validate inputs (existing CQ1-CQ9 present, reference material provided)
-3. Question Writing (generate 6 new CQs, 2 per Bloom's level, no overlap with CQ1-CQ9)
-4. Psychometric Review (enforce difficulty standards, select best 2 per level)
-5. Consistency Check (append CQ10-CQ15, conditionally update Task instructions)
+3. Material Coverage Analysis (compare CQ1-CQ9 against reference material to identify under-covered concepts)
+4. Question Writing (generate 6 new CQs, 2 per Bloom's level, prioritizing under-covered material)
+5. Psychometric Review (enforce difficulty standards, select best 2 per level)
+6. Consistency Check (append CQ10-CQ15, conditionally update Task instructions)
 ```
 
 **Key differences from Paths A/B:**
 - Skips Source Discovery, Domain Expert, and Curriculum Designer entirely
 - Does NOT generate or modify the Familiarity Quiz
 - Existing CQ1-CQ9, Metadata, and Familiarity Quiz are frozen (read-only)
+- Performs Material Coverage Analysis to identify under-covered concepts before question generation
 - Only appends new questions and conditionally updates 3 Task data fields
 
 **Key principle (Paths A/B only):** Familiarity quiz and learning objectives are derived FROM the comprehension quiz, not before it. This ensures learning objectives reflect exactly what students need to know to answer the questions.
@@ -203,7 +205,8 @@ IF "path" == "C":
     → Validate: "existing_task_content" is present and non-empty → ERROR if missing
     → Validate: "reference_material_content" is present and non-empty → ERROR if missing
     → Validate: existing_task_content contains CQ1-CQ9 → ERROR if missing
-    → Generate CQ10-CQ15 using reference material
+    → Material Coverage Analysis: compare CQ1-CQ9 against reference_material_content
+    → Generate CQ10-CQ15 prioritizing under-covered concepts
     → Optionally update Task instructions
 ELSE IF "Reference material" OR "Reference material content" OR "Sample questions" OR "Sample questions content" is provided:
     → Path B (start with Question Writer)
@@ -362,11 +365,16 @@ All questions must be **single-select MCQs** with **4 or 5 options** (1 key + 3-
 
 ### Path C: Generate CQ10-CQ15
 
-1. Read existing CQ1-CQ9 to identify concepts already tested
-2. Generate **3-4 candidates per Bloom's level** (9-12 total)
+1. **Material Coverage Analysis**: Compare CQ1-CQ9 against reference material to produce a coverage map
+   - Extract all key concepts, facts, thresholds, and themes from the reference material
+   - Map each CQ1-CQ9 to the specific concepts it tests
+   - Identify **covered concepts** (tested by at least one existing CQ)
+   - Identify **under-covered concepts** (present in reference material but not tested by any CQ)
+   - Rank under-covered concepts by importance and testability
+2. Generate **3-4 candidates per Bloom's level** (9-12 total), **prioritizing under-covered concepts**
 3. Evaluate against MCQ best practices rubric
 4. Verify **no concept overlap** with CQ1-CQ9
-5. Select **best 2 per level** based on difficulty and discrimination
+5. Select **best 2 per level** based on difficulty, discrimination, and coverage of under-represented material
 6. Verify key position distribution across CQ10-CQ15
 
 ## Distractor Quality Standard
@@ -414,6 +422,7 @@ Every wrong answer must:
 - [ ] All 6 new questions (CQ10-CQ15) score ≥7.0/10
 - [ ] Average score of CQ10-CQ15 ≥7.5/10
 - [ ] No concept overlap with CQ1-CQ9 (each CQ10-CQ15 tests a distinct concept)
+- [ ] **Material coverage prioritized:** CQ10-CQ15 preferentially test under-covered concepts identified in the coverage analysis
 - [ ] All options in-scope with reference material
 - [ ] Correct answer positions distributed across CQ10-CQ15 (no more than 2 in same position)
 - [ ] CQ1-CQ9 are identical to input (no modifications whatsoever)

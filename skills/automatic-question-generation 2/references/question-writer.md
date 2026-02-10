@@ -14,6 +14,35 @@ This agent may receive different inputs depending on the workflow path:
 - Receives user-provided source materials directly
 - May also receive `sample_questions` to draw inspiration from
 
+### Path C (Expansion — CQ10-CQ15)
+- Receives reference material content, existing CQ1-CQ9 as context, AND a **coverage map** from the Material Coverage Analysis step
+- Must generate 9-12 candidate questions (3-4 per Bloom's level) that:
+  1. **Do not overlap** with concepts already tested by CQ1-CQ9
+  2. **Prioritize under-covered concepts** identified in the coverage map
+
+#### Using the Coverage Map (Path C Only)
+
+The coverage map provides:
+- **covered_concepts**: Concepts already tested by CQ1-CQ9, with which CQs test them and at which Bloom's levels
+- **under_covered_concepts**: Concepts present in the reference material but not tested by any existing CQ, ranked by importance and testability
+- **coverage_summary**: Overall statistics on how much of the reference material is covered
+
+**Question generation priority for Path C:**
+
+1. **First priority — High-importance, high-testability under-covered concepts**: Generate candidates targeting these concepts first. These should form the backbone of CQ10-CQ15.
+2. **Second priority — Medium-importance under-covered concepts**: Use these to fill remaining slots or as alternative candidates.
+3. **Last resort — Fresh angles on covered concepts**: Only if under-covered concepts are exhausted or insufficient for a given Bloom's level, generate questions that test already-covered concepts from a meaningfully different angle or at a different Bloom's level than CQ1-CQ9.
+
+**Path C candidate generation procedure:**
+
+1. Review the coverage map and select the top under-covered concepts to target
+2. For each Bloom's level (Remembering, Understanding, Applying):
+   a. Identify 3-4 under-covered concepts suitable for that Bloom's level
+   b. Generate one candidate question per concept
+   c. If fewer than 3 under-covered concepts are suitable for a level, supplement with fresh-angle questions on covered concepts (testing a different aspect or at a different cognitive depth)
+3. For each candidate, document which under-covered concept it targets (or explain why it uses a covered concept with a fresh angle)
+4. Pass all 9-12 candidates + coverage justification to Psychometric Reviewer
+
 ### Using Sample Questions (Path B Only)
 
 When `sample_questions` are provided:
@@ -339,6 +368,31 @@ Select questions that:
 }
 ```
 
+### Path C Output Format (Additional Fields)
+
+For Path C candidate questions, include these additional fields to track coverage:
+
+```json
+{
+  "question_id": "CQ10-candidate-1",
+  "coverage_target": {
+    "concept": "Description of the under-covered concept this question targets",
+    "coverage_status": "under-covered | fresh-angle-on-covered",
+    "importance": "high | medium | low",
+    "rationale": "Why this concept was selected from the coverage map"
+  },
+  "question_text": "...",
+  "options": ["..."],
+  "correct_answer": ["..."],
+  "bloom_level": "Remembering",
+  "difficulty_target": "hard",
+  "source_evidence": "...",
+  "distractor_rationale": {},
+  "mcq_rubric_check": {},
+  "discrimination_estimate": "..."
+}
+```
+
 ---
 
 ## Pre-Submission Quality Gate
@@ -406,3 +460,7 @@ Before submitting any question, verify:
 | **Out-of-scope distractor** | Easy elimination ("I didn't read about that") | Replace with in-scope misconception |
 
 Generate **12-15+ candidate questions** with varied difficulty. The psychometric reviewer will evaluate against the MCQ rubric and select the best 9 that meet quality standards.
+
+### Path C: Coverage-Driven Generation
+
+For Path C, generate **9-12 candidate questions** (3-4 per Bloom's level) prioritizing under-covered concepts from the coverage map. The psychometric reviewer will select the best 2 per Bloom's level (6 total) that meet quality standards and maximize material coverage. Each candidate must document its coverage_target to enable coverage-aware selection.

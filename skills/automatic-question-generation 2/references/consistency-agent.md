@@ -428,6 +428,7 @@ Include the full option text with letter prefix:
 - [ ] Options formatted as `"A. [text]"`
 - [ ] Correct answers include letter AND full text
 - [ ] No concept overlap between CQ10-CQ15 and CQ1-CQ9
+- [ ] CQ10-CQ15 prioritize under-covered concepts from the Material Coverage Analysis
 
 ### Path C Frozen Content Validation
 - [ ] Metadata table is identical to existing file
