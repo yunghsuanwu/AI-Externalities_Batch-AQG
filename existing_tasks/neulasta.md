@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common terms used in drug labels such as "indication," "contraindication," "dosage administration," and "adverse reaction"? |
+| **Question** | Participants | How familiar are you with common terms used in drug labels such as indication, contraindication, dosage administration, and adverse reaction? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
