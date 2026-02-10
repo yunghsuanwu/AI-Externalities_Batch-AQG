@@ -57,7 +57,7 @@ DEFAULT_MODEL = "claude-opus-4-5-20251101"  # Use Claude Opus 4.5 by default
 MAX_TOKENS = 16000  # Sufficient for full quiz output
 # Try local skills directory first, then fall back to the original path
 SKILL_DIR = Path(__file__).parent / "skills" / "automatic-question-generation-v2"
-FALLBACK_SKILL_DIR = Path("/mnt/skills/user/automatic-question-generation")
+FALLBACK_SKILL_DIR = Path("/mnt/skills/user/automatic-question-generation-v2")
 
 # Files to include in system prompt (order matters)
 SKILL_FILES = [
