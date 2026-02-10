@@ -1,21 +1,3 @@
-# Grammar and Language Verification
-- [x] American English spelling confirmed
-- [x] American English punctuation (periods/commas inside quotes)
-- [x] No typos detected
-- [x] Consistent capitalization
-- [x] Subject-verb agreement verified
-
-### Format Verification
-- [x] Header format correct
-- [x] All metadata fields present
-- [x] Task data fields complete
-- [x] FQ1-FQ4 generated (no FQ5-FQ11)
-- [x] CQ1-CQ9 present with correct Bloom's distribution
-- [x] 5 options per question (A-E)
-- [x] Correct answer includes letter and full text
-
----
-
 # Taxes: Self-employment tax
 
 | **Metadata** | For researchers only |
@@ -46,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common tax terms such as adjusted gross income, tax deductions, and filing status? |
+| **Question** | Participants | How familiar are you with tax concepts such as tax brackets, tax deduction, and tax credit? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -55,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how different types of income, such as wages, self-employment income, and investment income, are taxed differently? |
+| **Question** | Participants | How well do you understand how U.S. marginal tax rates work? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
