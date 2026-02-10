@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common health and wellness terms such as integrative medicine, chronic illness, and intentional movement? |
+| **Question** | Participants | How familiar are you with common health and wellbeing terms such as stress management, mindfulness, and relaxation techniques? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how mind-body practices can serve as complementary therapies alongside standard medical treatments? |
+| **Question** | Participants | How well do you understand how mind-body practices like meditation and breathing exercises affect physical and emotional wellbeing? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |

@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common health and wellness terms such as chronic pain, clinical practice guidelines, and evidence-based treatment? |
+| **Question** | Participants | How familiar are you with common health and wellbeing terms such as stress management, mindfulness, and relaxation techniques? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how scientific research evaluates the effectiveness of health treatments, including concepts like study quality and strength of evidence? |
+| **Question** | Participants | How well do you understand how mind-body practices like meditation and breathing exercises affect physical and emotional wellbeing? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |

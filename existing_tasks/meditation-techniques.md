@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how mind-body practices like meditation and breathing exercises can affect physical and emotional wellbeing? |
+| **Question** | Participants | How well do you understand how mind-body practices like meditation and breathing exercises affect physical and emotional wellbeing? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
