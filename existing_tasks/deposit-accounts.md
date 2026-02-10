@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common financial terms and definitions such as interest rates, savings accounts, and checking accounts? |
+| **Question** | Participants | How familiar are you with common personal finance terms and definitions such as budgeting, interest rates, and savings accounts? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how financial institutions protect deposits and the trade-offs between different types of accounts? |
+| **Question** | Participants | How well do you understand different strategies to tailor personal financial decisions, such as spending and saving, on long-term financial goals? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |

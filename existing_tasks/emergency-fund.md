@@ -9,7 +9,7 @@
 | **Reference material filename** | emergency-fund.pdf |
 | **Reference material source** | CFPB: https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/ |
 | **Comprehension quiz source** | AQG |
-| **Task inspiration** | Based on educational materials by 1) CFPB Consumer Tools (https://www.consumerfinance.gov/consumer-tools/educator-tools/your-money-your-goals/toolkit/); 2) MyMoney.gov (https://www.mymoney.gov/for-teachers); 3) National Endowment for Financial Education (NEFE), Jump$tart Coalition, or similar nonprofits focused on financial literacy; 4) Financial Institution Educational Materials (Banks, credit unions, etc.) |
+| **Task inspiration** | Based on educational materials by 1. CFPB Consumer Tools (https://www.consumerfinance.gov/consumer-tools/educator-tools/your-money-your-goals/toolkit/); 2. MyMoney.gov (https://www.mymoney.gov/for-teachers); 3. National Endowment for Financial Education (NEFE), Jump$tart Coalition, or similar nonprofits focused on financial literacy; 4. Financial Institution Educational Materials (Banks, credit unions, etc.) |
 | **AI system prompt** | You are a helpful AI assistant that provides clear, informative, and educational information. |
 
 | **Task data** | Displayed for participants |
@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common personal finance terms and definitions such as budgeting, interest rates, and credit scores? |
+| **Question** | Participants | How familiar are you with common personal finance terms and definitions such as budgeting, interest rates, and savings accounts? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how personal financial decisions, such as spending and saving, affect long-term financial stability? |
+| **Question** | Participants | How well do you understand different strategies to tailor personal financial decisions, such as spending and saving, on long-term financial goals? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
