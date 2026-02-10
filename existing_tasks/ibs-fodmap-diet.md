@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with health and nutrition terms such as dietary fiber, macronutrients, and food intolerances? |
+| **Question** | Participants | How familiar are you with common dietary planning terms and definitions such as macronutrients, food groups, and nutritional requirements? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how different foods and nutrients affect digestive health and gastrointestinal symptoms? |
+| **Question** | Participants | How well do you understand the concepts behind dietary planning, such as how nutrients from food support different body functions and ways to balance nutrient intake? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
