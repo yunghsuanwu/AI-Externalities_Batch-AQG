@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common health and medical terms such as symptoms, diagnosis, and chronic conditions? |
+| **Question** | Participants | How familiar are you with common medical terms and definitions related to diagnosing diseases, such as symptoms, risk factors, and organ systems? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how the body's sensory systems work together to maintain balance and spatial orientation? |
+| **Question** | Participants | How well do you understand how doctors use symptoms, medical history, and risk factors to identify possible diseases? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
