@@ -43,11 +43,10 @@
 | **Category** | Researcher-only | Domain-specific |
 | **Bloom's level** | Researcher-only | Understanding |
 
-
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ3 |
-| **Question** | Participants | How familiar are you with terms related to thyroid medication such as hypothyroidism, levothyroxine, and TSH levels? |
+| **Question** | Participants | How familiar are you with terms related to thyroid medication such as hypothyroidism, levothyroxine, and thyroid-stimulating hormone (TSH) levels? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Task-specific |
