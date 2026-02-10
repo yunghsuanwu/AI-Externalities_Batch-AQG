@@ -1,7 +1,3 @@
-# Final Output File
-
----
-
 # Investment: High-yield corporate bonds
 
 | **Metadata** | For researchers only |
@@ -147,49 +143,3 @@
 | **Answer type** | Researcher-only | Single-select |
 | **Correct answers** | Researcher-only | ["D. Avoid this bond or ensure he understands when cash payments might be replaced or skipped"] |
 | **Bloom's level** | Researcher-only | Applying |
-
----
-
-## Quality Validation Checklist
-
-### Structure ✓
-- [x] Header follows `# [Use case]: [Task title]` format
-- [x] Metadata table has all 9 rows
-- [x] Task data table has all 7 rows
-- [x] Two blank lines after Task data table, before Familiarity Quiz
-
-### Naming ✓
-- [x] Task ID is lowercase with dashes
-- [x] Task ID has 2 dashes (3 words)
-- [x] Reference material filename is `high-yield-corporate-bonds.pdf`
-- [x] Task title ≤ 5 words (3 words)
-- [x] Task topic ≤ 8 words (7 words)
-
-### Familiarity Quiz ✓
-- [x] FQ1-FQ4 present (4 custom questions only)
-- [x] FQ1-FQ2 are Domain-specific (Remembering, Understanding)
-- [x] FQ3-FQ4 are Task-specific (Remembering, Understanding)
-- [x] Correct Likert scale for each Bloom's level
-- [x] NO FQ5-FQ11 in output
-
-### Comprehension Quiz ✓
-- [x] CQ1-CQ9 present (9 questions)
-- [x] CQ1-CQ3 are Remembering
-- [x] CQ4-CQ6 are Understanding
-- [x] CQ7-CQ9 are Applying
-- [x] Each CQ has 5 options (A-E)
-- [x] Options formatted as `"A. [text]"`
-- [x] Correct answers include letter AND full text
-
-### Key Position Distribution ✓
-- [x] A: 1 question (CQ6)
-- [x] B: 3 questions (CQ1, CQ5, CQ8)
-- [x] C: 2 questions (CQ2, CQ4)
-- [x] D: 2 questions (CQ3, CQ9)
-- [x] E: 1 question (CQ7)
-
-### Grammar and Language ✓
-- [x] American English spelling throughout
-- [x] No typos or misspellings
-- [x] Consistent punctuation
-- [x] Clear, unambiguous sentences

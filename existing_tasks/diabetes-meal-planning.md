@@ -1,7 +1,3 @@
-# Final Output
-
----
-
 # Dietary planning: Diabetes Meal Planning
 
 | **Metadata** | For researchers only |

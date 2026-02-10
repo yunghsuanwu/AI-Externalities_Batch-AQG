@@ -1,18 +1,3 @@
-# Grammar and Language Check
-- [x] American English spelling verified
-- [x] Consistent punctuation
-- [x] No typos detected
-- [x] Subject-verb agreement correct
-
-### Format Validation
-- [x] All tables use correct structure
-- [x] Option labeling consistent (A-E)
-- [x] 5 options per CQ as specified
-
----
-
-# Final Output
-
 # Dietary planning: Coeliac Disease and Gluten Free Diet
 
 | **Metadata** | For researchers only |

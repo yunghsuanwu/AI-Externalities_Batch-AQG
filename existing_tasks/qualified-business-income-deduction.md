@@ -1,7 +1,3 @@
-# Final Output
-
----
-
 # Taxes: Qualified business income deduction
 
 | **Metadata** | For researchers only |

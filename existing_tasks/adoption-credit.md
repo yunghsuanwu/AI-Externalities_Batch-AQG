@@ -1,7 +1,3 @@
-# Final Output
-
----
-
 # Taxes: Adoption Credit
 
 | **Metadata** | For researchers only |
