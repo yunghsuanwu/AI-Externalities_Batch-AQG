@@ -26,7 +26,7 @@ DEFAULT_MAX_REFERENCE_CHARS = 50000
 
 # Directories relative to this script
 REFERENCE_MATERIALS_DIR = Path(__file__).parent / "reference_materials"
-EXISTING_TASK_DIR = Path(__file__).parent / "results" / "final"
+EXISTING_TASK_DIR = Path(__file__).parent / "existing_tasks"
 
 
 def _extract_text_from_path(ref_path: Path, max_chars: int = DEFAULT_MAX_REFERENCE_CHARS) -> Optional[str]:

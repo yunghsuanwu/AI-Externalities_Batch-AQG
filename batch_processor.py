@@ -185,6 +185,49 @@ def extract_final_output(full_content: str, task_id: str) -> Optional[str]:
 # INPUT FORMATTING
 # ============================================================================
 
+# Path C (expansion) required keys; other fields are optional per SKILL.md
+PATH_C_REQUIRED = {"path", "task_id", "existing_task_content", "reference_material_content"}
+
+
+def _is_path_c_task(task: dict) -> bool:
+    """
+    Return True if this task uses Path C (expand existing task) format.
+    Path C tasks have path=="C" and the required Path C fields.
+    """
+    if task.get("path") != "C":
+        return False
+    for key in PATH_C_REQUIRED:
+        if key not in task:
+            return False
+        val = task[key]
+        if val is None or (isinstance(val, str) and not val.strip()):
+            return False
+    return True
+
+
+def format_task_input_path_c(task: dict) -> str:
+    """
+    Format a Path C (expansion) task into the user prompt.
+    The skill expects a JSON object with path, task_id, existing_task_content,
+    reference_material_content, and optionally existing_task_file, reference_material_file.
+    """
+    payload = {
+        "path": "C",
+        "task_id": task["task_id"],
+        "existing_task_content": task["existing_task_content"],
+        "reference_material_content": task["reference_material_content"],
+    }
+    if task.get("existing_task_file"):
+        payload["existing_task_file"] = task["existing_task_file"]
+    if task.get("reference_material_file"):
+        payload["reference_material_file"] = task["reference_material_file"]
+    json_str = json.dumps(payload, ensure_ascii=False)
+    return (
+        "Generate a quiz using the automatic quiz generation skill.\n\n"
+        "Input (Path C — expand existing task with CQ10–CQ15):\n\n"
+        f"```json\n{json_str}\n```"
+    )
+
 
 def _load_reference_material_content(reference_value: str, max_chars: int = 50000) -> Optional[str]:
     """
@@ -275,10 +318,21 @@ def _load_reference_material_content(reference_value: str, max_chars: int = 5000
 def format_task_input(task: dict) -> str:
     """
     Format a task dictionary into the expected input prompt.
+    Dispatches to Path C (expansion) when task has path=="C" and Path C required fields;
+    otherwise uses Path A/B format and requires domain, use_case, etc.
     """
+    if task.get("path") == "C":
+        if _is_path_c_task(task):
+            return format_task_input_path_c(task)
+        missing = [k for k in PATH_C_REQUIRED if not task.get(k) or (isinstance(task[k], str) and not task[k].strip())]
+        if missing:
+            raise ValueError(
+                f"Path C task missing or empty required fields: {', '.join(missing)}. "
+                "Path C requires: path, task_id, existing_task_content, reference_material_content."
+            )
+
+    # Path A/B: required fields
     lines = ["Generate a quiz using the automatic quiz generation skill.", "", "Input:"]
-    
-    # Required fields
     required = ["domain", "use_case", "use_case_description", "knowledge_dimensions", "task_id", "task_title"]
     for field in required:
         if field not in task:
@@ -348,10 +402,13 @@ def submit_batch(input_file: str, model: str = DEFAULT_MODEL, dry_run: bool = Fa
     else:
         raise ValueError("Input must be a JSON array or object with 'tasks' array")
 
-    # Dry-run: require reference_material_content for every task with local reference_material
+    # Dry-run: require reference_material_content for Path A/B tasks with local reference_material
+    # Path C tasks already embed reference_material_content in the JSON, so skip them
     if dry_run:
         missing = []
         for task in tasks:
+            if _is_path_c_task(task):
+                continue
             ref = task.get("reference_material")
             if ref and not ref.startswith(("http://", "https://")):
                 content = task.get("reference_material_content")
