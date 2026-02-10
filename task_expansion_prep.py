@@ -29,12 +29,18 @@ REFERENCE_MATERIALS_DIR = Path(__file__).parent / "reference_materials"
 EXISTING_TASK_DIR = Path(__file__).parent / "existing_tasks"
 
 
-def _extract_text_from_path(ref_path: Path, max_chars: int = DEFAULT_MAX_REFERENCE_CHARS) -> Optional[str]:
+def _extract_text_from_path(
+    ref_path: Path,
+    max_chars: int = DEFAULT_MAX_REFERENCE_CHARS,
+    _log_context: Optional[str] = None,
+) -> Optional[str]:
     """
     Extract text from a local file. Prefer pdfplumber for PDFs, then PyPDF2, then plain text.
     Returns None on failure or if no library is available. Truncates to max_chars.
     """
     if not ref_path.exists():
+        ctx = f" ({_log_context})" if _log_context else ""
+        print(f"Warning: reference file does not exist{ctx}: {ref_path}", file=sys.stderr)
         return None
 
     text: Optional[str] = None
@@ -49,7 +55,8 @@ def _extract_text_from_path(ref_path: Path, max_chars: int = DEFAULT_MAX_REFEREN
                         pages_text.append(page_text)
                     text = "\n\n".join(pages_text)
             except Exception as e:
-                print(f"Warning: pdfplumber failed for {ref_path}: {e}", file=sys.stderr)
+                ctx = f" ({_log_context})" if _log_context else ""
+                print(f"Warning: pdfplumber failed for {ref_path}{ctx}: {e}", file=sys.stderr)
                 text = None
         if text is None and PyPDF2 is not None:
             try:
@@ -61,11 +68,13 @@ def _extract_text_from_path(ref_path: Path, max_chars: int = DEFAULT_MAX_REFEREN
                         pages_text.append(page_text)
                     text = "\n\n".join(pages_text)
             except Exception as e:
-                print(f"Warning: PyPDF2 failed for {ref_path}: {e}", file=sys.stderr)
+                ctx = f" ({_log_context})" if _log_context else ""
+                print(f"Warning: PyPDF2 failed for {ref_path}{ctx}: {e}", file=sys.stderr)
                 text = None
         if text is None and (pdfplumber is None and PyPDF2 is None):
+            ctx = f" ({_log_context})" if _log_context else ""
             print(
-                f"Warning: Neither pdfplumber nor PyPDF2 installed; cannot extract PDF: {ref_path}",
+                f"Warning: Neither pdfplumber nor PyPDF2 installed; cannot extract PDF{ctx}: {ref_path}",
                 file=sys.stderr,
             )
     else:
@@ -80,6 +89,8 @@ def _extract_text_from_path(ref_path: Path, max_chars: int = DEFAULT_MAX_REFEREN
 
     text = text.strip()
     if not text:
+        ctx = f" ({_log_context})" if _log_context else ""
+        print(f"Warning: extracted text was empty after strip{ctx}: {ref_path}", file=sys.stderr)
         return None
 
     if len(text) > max_chars:
@@ -128,9 +139,9 @@ def convert_from_csv(
                 "path": "C",
                 "task_id": task_id,
                 "existing_task_file": str(existing_path.resolve()),
-                "existing_task_content": _extract_text_from_path(existing_path),
+                "existing_task_content": _extract_text_from_path(existing_path, _log_context=task_id),
                 "reference_material_file": str(reference_path.resolve()),
-                "reference_material_content": _extract_text_from_path(reference_path),
+                "reference_material_content": _extract_text_from_path(reference_path, _log_context=task_id),
             }
             tasks.append(task)
 
