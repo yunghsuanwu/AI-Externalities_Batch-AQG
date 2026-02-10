@@ -28,7 +28,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ1 |
-| **Question** | Participants | How familiar are you with common finance terms and definitions such as interest rates, credit limits, and annual percentage rate (APR)? |
+| **Question** | Participants | How familiar are you with common financial terms and definitions such as credit score, credit limits, and debt? |
 | **Options** | Participants | ["1 (Not at all familiar)", "2", "3", "4", "5", "6", "7 (Very familiar)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
@@ -37,7 +37,7 @@
 | Field | Visibility | Value |
 |---|---|---|
 | **Question ID** | Participants | FQ2 |
-| **Question** | Participants | How well do you understand how credit scoring works and how factors like payment history and credit utilization affect your creditworthiness? |
+| **Question** | Participants | How well do you understand how borrowing, lending, and repayment decisions affect a person's financial standing? |
 | **Options** | Participants | ["1 (Not at all)", "2", "3", "4", "5", "6", "7 (Very well)"] |
 | **Answer type** | Researcher-only | Single-select |
 | **Category** | Researcher-only | Domain-specific |
