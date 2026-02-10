@@ -139,6 +139,7 @@ def convert_from_csv(
 
 
 REQUIRED_TASK_KEYS = (
+    "path",
     "task_id",
     "existing_task_file",
     "existing_task_content",
