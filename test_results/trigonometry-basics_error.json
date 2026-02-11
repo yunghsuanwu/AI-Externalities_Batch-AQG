@@ -1,0 +1,5 @@
+{
+  "task_id": "trigonometry-basics",
+  "error_type": "ValueError",
+  "error": "Streaming is required for operations that may take longer than 10 minutes. See https://github.com/anthropics/anthropic-sdk-python#long-requests for more details"
+}

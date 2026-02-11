@@ -27,6 +27,7 @@ Thumbs.db
 batch_*_info.json
 batch_results/
 results/
+results_hallucinated/
 
 # Reference materials (optional - uncomment if you don't want to track them)
 # reference_materials/
